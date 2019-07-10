@@ -81,7 +81,7 @@ void Test()
 	json_obj_add_member(basic_obj,"json_test",advance_obj);
 	json_obj_add_member(root, "advance", advance_obj);
 
-	json_obj_add_member(root, "root", root);  // bug，不处理会导致死循环
+	//json_obj_add_member(root, "root", root);  // bug，不处理会导致死循环
 
 	// 打印
 	 json_print_val(root);
@@ -89,7 +89,7 @@ void Test()
 	// json_print_val(portpool_arr);
 
 	// 释放内存
-	json_destroy(&root);
+	json_destroy(root);
 	// json_clear(root);
 
 }

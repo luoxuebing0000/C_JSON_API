@@ -62,12 +62,12 @@ Json* json_create()
  *  @param json 要销毁的Json变量的地址，在此处进行内存释放
  *  @return 返回空值
  */
-void json_destroy(Json** json)
+void json_destroy(Json* json)
 {
-	assert(json != NULL);
-	json_clear(*json);
-	free(*json);
-	*json = NULL; // 避免野指针
+	if(json == NULL)
+		return;
+	json_clear(json);
+	free(json);
 }
 
 /**
@@ -109,17 +109,17 @@ int json_obj_add_member(Json* json, const char* key, Json* val)
 	assert(json != NULL);
 	assert(key != NULL);
 	assert(val != NULL);
-	//assert(json != val);
+	assert(json != val);
 
 	int ret = 0;
 
 	// 添加自己的时候
-	if(json == val)
-	{
-		ret = -1;
-		printf("不能添加自己 %d\n", ret);
-		return ret;
-	}
+	// if(json == val)
+	// {
+	// 	ret = -1;
+	// 	printf("不能添加自己 %d\n", ret);
+	// 	return ret;
+	// }
 	
 	// 判断json的类型，如果为OBJ类型或者为NONE类型则添加成员，若不是则提示操作失败
 	if (json->type != JSON_OBJ && json->type != JSON_NONE)
@@ -134,14 +134,14 @@ int json_obj_add_member(Json* json, const char* key, Json* val)
 		json->type = JSON_OBJ;
 	}
 	// 申请动态扩容的keyvalue的内存并初始化
-	json->obj.kvs = (keyvalue*)realloc(json->obj.kvs, (json->obj.count + 1) * sizeof(keyvalue));
-	if (json->obj.kvs == NULL)
+	keyvalue* kvs_tmp = (keyvalue*)realloc(json->obj.kvs, (json->obj.count + 1) * sizeof(keyvalue));
+	if(kvs_tmp == NULL)
 	{
 		ret = -3;
 		printf("func json_obj_add_member() error: realloc memory error : %d\n", ret);
 		return ret;
 	}
-
+	json->obj.kvs = kvs_tmp;
 	// 在keyvalue中最后一个添加key和val
 	json->obj.kvs[json->obj.count].key = strdup(key);
 	json->obj.kvs[json->obj.count].val = val;
@@ -157,19 +157,17 @@ int json_obj_add_member(Json* json, const char* key, Json* val)
 Json* json_new_num(double num)
 {
 	int ret = 0;
-	//定义一个Json变量并申请内存 
+	//定义一个Json变量并申请内存
 	Json* json_ret = (Json*)calloc(1, sizeof(Json));
 	if (json_ret == NULL)
 	{
 		ret = -1;
 		printf("func json_new_num error: calloc memory error %d\n", ret);
-		goto END;
+		return NULL;
 	}
 	json_ret->type = JSON_NUM;
 	json_ret->num = num;
 	return json_ret;
-END:
-	return NULL;
 }
 
 /**
@@ -186,13 +184,11 @@ Json* json_new_bool(enum BOOL b)
 	{
 		ret = -1;
 		printf("func json_new_num error: calloc memory error %d\n", ret);
-		goto END;
+		return NULL;
 	}
 	json_ret->type = JSON_BOOL;
 	json_ret->bol = b;
 	return json_ret;
-END:
-	return NULL;
 }
 
 /**
@@ -213,8 +209,19 @@ Json* json_new_str(const char* str)
 		return NULL;
 	}
 	json_ret->type = JSON_STR;
-	json_ret->str = strdup(str);
+	char *str_tmp = strdup(str);
+	if(str_tmp == NULL)
+	{
+		ret = -2;
+		printf("func json_new_num error: calloc memory error %d\n", ret);
+		goto END;
+	}
+	json_ret->str = str_tmp;
 	return json_ret;
+END:
+	if(json_ret != NULL)
+		free(json_ret);
+	return NULL;
 }
 
 Json* json_new_array()
@@ -259,34 +266,32 @@ int json_arr_add_elem(Json* json, int idx, Json* val)
 	assert(json != NULL);
 	assert(val != NULL);
 	assert(idx >= 0);
+	assert(json->type == JSON_ARR || json->type == JSON_NONE);
+	
 	int ret = 0;
-	if (json->type != JSON_ARR && json->type != JSON_NONE)
-	{
-		ret = -1;
-		printf("func json_arr_add_elem() failed: json类型是非ARR类型 %d\n", ret);
-		goto END;
-	}
 	if (json->type == JSON_NONE)
 	{
 		json->type = JSON_ARR;
 	}
 
 	// idx范围判断
-	if (json->arr.count < idx)
-	{
-		ret = -2;
-		printf("func json_arr_add_elem() failed: idx超过范围 %d\n", ret);
+	assert(json->arr.count <= idx);
+	// if (json->arr.count < idx)
+	// {
+	// 	ret = -2;
+	// 	printf("func json_arr_add_elem() failed: idx超过范围 %d\n", ret);
 
-	}
+	// }
 
 	// 扩容
-	json->arr.elems = (Json**)realloc(json->arr.elems, (json->arr.count + 1) * sizeof(int));
-	if (json->arr.elems == NULL)
+	Json** json_tmp = (Json**)realloc(json->arr.elems, (json->arr.count + 1) * sizeof(int));
+	if(json_tmp == NULL)
 	{
-		ret = -3;
+		ret = -1;
 		printf("func json_arr_add_elem() error: malloc memory error %d\n", ret);
-		goto END;
+		return ret;
 	}
+	json->arr.elems = json_tmp;
 
 	for (int i = json->arr.count; i >= idx; i--)
 	{
@@ -294,8 +299,6 @@ int json_arr_add_elem(Json* json, int idx, Json* val)
 	}
 	json->arr.elems[idx] = val;
 	json->arr.count++;
-	return ret;
-END:
 	return ret;
 }
 
@@ -320,9 +323,6 @@ Json* json_get_val(Json* json, const char* key)
  *      -json 通用类型的json对象
  *  @return  无
  */
-
-
-
 void json_print_val(Json* json)
 {
 	assert(json != NULL);
@@ -331,6 +331,14 @@ void json_print_val(Json* json)
 	
 }
 
+/**
+ * 递归打印json数据
+ *  @param
+ *      -json 通用类型的json对象
+ *      -deep 当前递归深度，用于打印table键
+ *      -flag 标志，用来决定json最后一个value后面有没有逗号
+ *  @return  无
+ */
 void json_print_val_deep(Json* json, int deep, enum json_split flag)
 {
 	assert(json != NULL);
@@ -358,41 +366,61 @@ void json_print_val_deep(Json* json, int deep, enum json_split flag)
 	return;
 }
 
-
+/**
+ * 释放array数组中的数据（回收内存）
+ *  @param
+ *      -arr 通用类型的array类型变量
+ *  @return  无
+ */
 void json_free_array(array* arr)
 {
 	assert(arr != NULL);
 	for (int i = 0; i < arr->count; i++)
 	{
-		json_destroy(&arr->elems[i]);
+		json_destroy(arr->elems[i]);
 	}
 }
 
+/**
+ * 释放str存储的数据（回收内存）
+ *  @param
+ *      -str 字符串的地址，使用二级地址，避免野指针
+ *  @return  无
+ */
 void json_free_str(char** str)
 {
 	assert(str != NULL);
 	char* tmp = *str;
 	if (tmp == NULL)
 		return;
-	printf("free str: %s\n",*str);
+	//printf("free str: %s\n",*str);
 	free(*str);
 	*str = NULL;
 }
 
+/**
+ * 释放object中的数据（回收内存）
+ *  @param
+ *      -obj 通用的obj类型地址
+ *  @return  无
+ */
 void json_free_object(object* obj)
 {
 	assert(obj != NULL);
 	for (int i = 0; i < obj->count; i++)
 	{
 		json_free_str(&obj->kvs[i].key);
-		json_destroy(&obj->kvs[i].val);
+		json_destroy(obj->kvs[i].val);
 	}
 }
 
-
-
-
-
+/**
+ * 打印传入的数
+ *  @param
+ *      -num 要输出的数
+ *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 void json_print_num(double num, enum json_split flag)
 {
 	if (flag == WITH_COMMA)
@@ -401,6 +429,13 @@ void json_print_num(double num, enum json_split flag)
 		printf("%lf\n", num);
 }
 
+/**
+ * 打印传入的bool类型的字符串，
+ *  @param
+ *      -b 打印的数根据b判断为true 或 false
+ *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 void json_print_bool(enum BOOL b, enum json_split flag)
 {
 	if (b == TRUE && flag == WITH_COMMA)
@@ -421,6 +456,13 @@ void json_print_bool(enum BOOL b, enum json_split flag)
 	}
 }
 
+/**
+ * 打印传入的字符串，
+ *  @param
+ *      -b 打印的数为传入的字符串
+ *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 void json_print_str(const char* str, enum json_split flag)
 {
 	assert(str != NULL);
@@ -430,6 +472,13 @@ void json_print_str(const char* str, enum json_split flag)
 		printf("\"%s\"\n", str);
 }
 
+/**
+ * 打印传入的自定义的数组对象存储的数据，
+ *  @param
+ *      -arr 自定义的array类型变量
+ *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 void json_print_arr(const array* arr, int* deep, enum json_split flag)
 {
 	assert(arr != NULL);
@@ -451,6 +500,14 @@ void json_print_arr(const array* arr, int* deep, enum json_split flag)
 		printf("]\n");
 }
 
+/**
+ * 打印传入的自定义的object类型变量存储的数据，
+ *  @param
+ *      -obj 自定义的object类型变量地址
+ *      -deep 打印的table个数
+ *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 void json_print_obj(const object* obj, int* deep, enum json_split flag)
 {
 	assert(obj != NULL);
@@ -477,11 +534,62 @@ void json_print_obj(const object* obj, int* deep, enum json_split flag)
 
 }
 
+/**
+ * 打印deep个table键，
+ *  @param
+ *      -deep 打印的table个数
+ *  @return  无
+ */
 void format_print_tbl(int deep)
 {
 	assert(deep >= 0);
 	for (int i = 0; i < deep; i++)
 	{
 		printf("\t");
+	}
+}
+
+/**
+ * 修改json对象存储的key对应的value值
+ *  @param
+ *      -json 要修改的json对象
+ *      -key  要查找的key值
+ *      -val 要替换的value值
+ *  @return  
+ *       0: 修改成功
+ *      -1: json是一个value值或者为空，不存在key值
+ */
+int json_set_val(Json *json,const char *key,Json *val)
+{
+	assert(json != NULL);
+	assert(key != NULL);
+	assert(val != NULL);
+	int ret = 0;
+	// 判断json存储的类型
+	if(json->type == JSON_NONE || json->type != JSON_ARR || json->type != JSON_OBJ)
+	{
+		ret = -1;
+		printf("func json_set_val error: json中无key值%d\n",ret);
+		return ret;
+	}
+
+	// 若json的类型为数组类型
+	if(json->type == JSON_ARR)
+	{
+		for(int i = 0;i<json->arr.count;i++)
+		{
+			ret = json_set_val(json->arr.elems[i],key,val);
+			if(ret == 0)
+				break;
+		}
+	}
+	
+	// 若json的类型为对象类型（Object）
+	if(json->type == JSON_OBJ)
+	{
+		for(int i = 0;i<json->obj.count;i++)
+		{
+			//TODO
+		}
 	}
 }

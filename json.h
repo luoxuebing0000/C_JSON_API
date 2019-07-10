@@ -21,7 +21,7 @@ Json* json_create();
  *  @param json 要销毁的Json变量的地址，在此处进行内存释放
  *  @return 返回空值
  */
-void json_destroy(Json** json);
+void json_destroy(Json* json);
 
 /**
  *  清空一个Json变量数据
@@ -190,5 +190,16 @@ void json_print_obj(const object* obj, int* deep, enum json_split flag);
  *  @return  无
  */
 void format_print_tbl(int deep);
+
+
+/**
+ * 修改json对象存储的key对应的value值
+ *  @param
+ *      -json 要修改的json对象
+ *      -key  要查找的key值
+ *      -val 要替换的value值
+ *  @return  无
+ */
+int json_set_val(Json *json,const char *key,Json *val);
 
 #endif
