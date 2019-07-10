@@ -1,6 +1,5 @@
 #ifndef __JSON_H__
 #define __JSON_H__
-
 #include "datatype_def.h"
 
 /**
@@ -54,22 +53,19 @@ Json* json_new_bool(enum BOOL b);
  */
 Json* json_new_str(const char* str);
 
-/**
- *  新建一个数组型的json变量
- *  @param arr  自定义数组
- *  @return  创建的数组型json对象
- */
-//Json* json_new_array(const array* arr);
 
-/**
- *  新建一个对象类型的json变量
- *  @param obj  对象
- *  @return  创建的对象类型的json对象
- */
-//Json* json_new_object(const object* obj);
-
-
+ /**
+  *  新建一个数组型的json变量
+  *  @param arr  自定义数组
+  *  @return  创建的数组型json对象
+  */
 Json* json_new_array();
+
+ /**
+  *  新建一个对象类型的json变量
+  *  @param obj  对象
+  *  @return  创建的对象类型的json对象
+  */
 Json* json_new_object();
 
 /**
@@ -99,25 +95,92 @@ Json* json_get_val(Json* json, const char* key);
  */
 void json_print_val(Json* json);
 
+/**
+ * 递归打印json数据
+ *  @param
+ *      -json 通用类型的json对象
+ *      -deep 当前递归深度，用于打印table键
+ *      -flag 标志，用来决定json最后一个value后面有没有逗号
+ *  @return  无
+ */
 void json_print_val_deep(Json* json,int deep, enum json_split flag);
 
+/**
+ * 释放array数组中的数据（回收内存）
+ *  @param
+ *      -arr 通用类型的array类型变量
+ *  @return  无
+ */
 void json_free_array(array *arr);
 
+/**
+ * 释放str存储的数据（回收内存）
+ *  @param
+ *      -str 字符串的地址，使用二级地址，避免野指针
+ *  @return  无
+ */
 void json_free_str(char** str);
 
+/**
+ * 释放object中的数据（回收内存）
+ *  @param
+ *      -obj 通用的obj类型地址
+ *  @return  无
+ */
 void json_free_object(object* obj);
 
-
+/**
+ * 打印传入的数
+ *  @param
+ *      -num 要输出的数
+ *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 void json_print_num(double num, enum json_split flag);
 
+/**
+ * 打印传入的bool类型的字符串，
+ *  @param
+ *      -b 打印的数根据b判断为true 或 false
+ *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 void json_print_bool(enum BOOL b, enum json_split flag);
 
+/**
+ * 打印传入的字符串，
+ *  @param
+ *      -b 打印的数为传入的字符串
+ *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 void json_print_str(const char* str, enum json_split flag);
 
+/**
+ * 打印传入的自定义的数组对象存储的数据，
+ *  @param
+ *      -arr 自定义的array类型变量
+ *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 void json_print_arr(const array* arr, int* deep, enum json_split flag);
 
+/**
+ * 打印传入的自定义的object类型变量存储的数据，
+ *  @param
+ *      -obj 自定义的object类型变量地址
+ *      -deep 打印的table个数
+ *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 void json_print_obj(const object* obj, int* deep, enum json_split flag);
 
+/**
+ * 打印deep个table键，
+ *  @param
+ *      -deep 打印的table个数
+ *  @return  无
+ */
 void format_print_tbl(int deep);
 
 #endif

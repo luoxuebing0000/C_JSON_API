@@ -61,6 +61,8 @@ void json_clear(Json* json)
 	default:
 		break;
 	}
+	memset(json,0,sizeof(Json));
+	json->type = JSON_NONE;
 }
 
 /**
@@ -76,11 +78,22 @@ int json_obj_add_member(Json* json, const char* key, Json* val)
 	assert(json != NULL);
 	assert(key != NULL);
 	assert(val != NULL);
+	//assert(json != val);
+
 	int ret = 0;
+
+	// 添加自己的时候
+	if(json == val)
+	{
+		ret = -1;
+		printf("不能添加自己 %d\n", ret);
+		return ret;
+	}
+	
 	// 判断json的类型，如果为OBJ类型或者为NONE类型则添加成员，若不是则提示操作失败
 	if (json->type != JSON_OBJ && json->type != JSON_NONE)
 	{
-		ret = -1;
+		ret = -2;
 		printf("func json_obj_add_member() failed: json类型是非OBJ类型 %d\n", ret);
 		return ret;
 	}
@@ -93,7 +106,7 @@ int json_obj_add_member(Json* json, const char* key, Json* val)
 	json->obj.kvs = (keyvalue*)realloc(json->obj.kvs, (json->obj.count + 1) * sizeof(keyvalue));
 	if (json->obj.kvs == NULL)
 	{
-		ret = -2;
+		ret = -3;
 		printf("func json_obj_add_member() error: realloc memory error : %d\n", ret);
 		return ret;
 	}
@@ -133,7 +146,7 @@ END:
  *  @param b  布尔值 true or false
  *  @return  创建的布尔型json对象
  */
-Json* json_new_bool(enum BOOL bool)
+Json* json_new_bool(enum BOOL b)
 {
 	int ret = 0;
 	//定义一个Json变量并申请内存 
@@ -145,7 +158,7 @@ Json* json_new_bool(enum BOOL bool)
 		goto END;
 	}
 	json_ret->type = JSON_BOOL;
-	json_ret->bol = bool;
+	json_ret->bol = b;
 	return json_ret;
 END:
 	return NULL;
@@ -236,7 +249,7 @@ int json_arr_add_elem(Json* json, int idx, Json* val)
 	}
 
 	// 扩容
-	json->arr.elems = realloc(json->arr.elems, (json->arr.count + 1) * sizeof(int));
+	json->arr.elems = (Json**)realloc(json->arr.elems, (json->arr.count + 1) * sizeof(int));
 	if (json->arr.elems == NULL)
 	{
 		ret = -3;
@@ -330,6 +343,7 @@ void json_free_str(char** str)
 	char* tmp = *str;
 	if (tmp == NULL)
 		return;
+	printf("free str: %s\n",*str);
 	free(*str);
 	*str = NULL;
 }
@@ -360,19 +374,19 @@ void json_print_bool(enum BOOL b, enum json_split flag)
 {
 	if (b == TRUE && flag == WITH_COMMA)
 	{
-		printf("true,\n");
+		printf("TRUE,\n");
 	}
 	else if(b == TRUE && flag == NO_COMMA)
 	{
-		printf("true\n");
+		printf("TRUE\n");
 	}
 	else if (b == FALSE && flag == WITH_COMMA)
 	{
-		printf("false,\n");
+		printf("FALSE,\n");
 	}
 	else
 	{
-		printf("false\n");
+		printf("FALSE\n");
 	}
 }
 

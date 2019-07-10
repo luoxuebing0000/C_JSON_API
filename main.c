@@ -19,7 +19,7 @@ void Test()
 	json_arr_add_elem(dns_arr_0, 0, dns_arr_index_0);
 	json_arr_add_elem(dns_arr_0, 1, dns_arr_index_1);
 
-	// Ïòbasic_objÖĞÌí¼Ó¼üÖµ
+	// å‘basic_objä¸­æ·»åŠ é”®å€¼
 	json_obj_add_member(basic_obj, "enable", enable_val);
 	json_obj_add_member(basic_obj, "ip", ip_val);
 	json_obj_add_member(basic_obj, "port", port_val);
@@ -69,24 +69,27 @@ void Test()
 	// "value": 3.14
 	Json* value_val = json_new_num((int)3.14);
 
-	// ÊµÏÖadvance_objµÄ²åÈë
+	// å®ç°advance_objçš„æ’å…¥
 	json_obj_add_member(advance_obj, "dns", dns_arr_1);
 	json_obj_add_member(advance_obj, "portpool", portpool_arr);
 	json_obj_add_member(advance_obj, "url", url_val);
 	json_obj_add_member(advance_obj, "path", path_val);
 	json_obj_add_member(advance_obj, "value", value_val);
 
-	// json¶ÔÏóµÄÌí¼Ó
+	// jsonå¯¹è±¡çš„æ·»åŠ 
 	json_obj_add_member(root, "basic", basic_obj);
+	json_obj_add_member(basic_obj,"json_test",advance_obj);
 	json_obj_add_member(root, "advance", advance_obj);
 
-	// ´òÓ¡
+	json_obj_add_member(root, "root", root);  // bugï¼Œä¸å¤„ç†ä¼šå¯¼è‡´æ­»å¾ªç¯
+
+	// æ‰“å°
 	 json_print_val(root);
 
 	// json_print_val(portpool_arr);
 
-	// ÊÍ·ÅÄÚ´æ
-	 json_destroy(&root);
+	// é‡Šæ”¾å†…å­˜
+	json_destroy(&root);
 	// json_clear(root);
 
 }
