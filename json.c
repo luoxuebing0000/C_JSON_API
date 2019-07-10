@@ -27,6 +27,7 @@ struct _tag_object
 
 struct _tag_json
 {
+	struct _tag_json* parent_node;
 	enum json_flag type;
 	union
 	{
@@ -53,6 +54,7 @@ Json* json_create()
 		printf("func json_create() error: calloc memory error : %d\n", ret);
 		return NULL;
 	}
+	tmp->parent_node = tmp;
 	tmp->type = JSON_NONE;
 	return tmp;
 }
@@ -66,8 +68,14 @@ void json_destroy(Json* json)
 {
 	if(json == NULL)
 		return;
-	json_clear(json);
-	free(json);
+	if (json->type == JSON_NONE)
+	{
+		free(json);
+	}
+	else
+	{
+		json_clear(json);
+	}
 }
 
 /**
@@ -93,6 +101,7 @@ void json_clear(Json* json)
 		break;
 	}
 	memset(json,0,sizeof(Json));
+	json->parent_node = json;
 	json->type = JSON_NONE;
 }
 
@@ -109,17 +118,14 @@ int json_obj_add_member(Json* json, const char* key, Json* val)
 	assert(json != NULL);
 	assert(key != NULL);
 	assert(val != NULL);
-	assert(json != val);
 
 	int ret = 0;
 
-	// 添加自己的时候
-	// if(json == val)
-	// {
-	// 	ret = -1;
-	// 	printf("不能添加自己 %d\n", ret);
-	// 	return ret;
-	// }
+	if (val->parent_node != NULL)
+	{
+		ret = -1;
+		return ret;
+	}
 	
 	// 判断json的类型，如果为OBJ类型或者为NONE类型则添加成员，若不是则提示操作失败
 	if (json->type != JSON_OBJ && json->type != JSON_NONE)
@@ -146,6 +152,7 @@ int json_obj_add_member(Json* json, const char* key, Json* val)
 	json->obj.kvs[json->obj.count].key = strdup(key);
 	json->obj.kvs[json->obj.count].val = val;
 	json->obj.count++;
+	val->parent_node = json;
 	return ret;
 }
 
@@ -165,6 +172,7 @@ Json* json_new_num(double num)
 		printf("func json_new_num error: calloc memory error %d\n", ret);
 		return NULL;
 	}
+	json_ret->parent_node = NULL;
 	json_ret->type = JSON_NUM;
 	json_ret->num = num;
 	return json_ret;
@@ -186,6 +194,7 @@ Json* json_new_bool(enum BOOL b)
 		printf("func json_new_num error: calloc memory error %d\n", ret);
 		return NULL;
 	}
+	json_ret->parent_node = NULL;
 	json_ret->type = JSON_BOOL;
 	json_ret->bol = b;
 	return json_ret;
@@ -208,6 +217,7 @@ Json* json_new_str(const char* str)
 		printf("func json_new_num error: calloc memory error %d\n", ret);
 		return NULL;
 	}
+	json_ret->parent_node = NULL;
 	json_ret->type = JSON_STR;
 	char *str_tmp = strdup(str);
 	if(str_tmp == NULL)
@@ -235,6 +245,7 @@ Json* json_new_array()
 		printf("func json_new_num error: calloc memory error %d\n", ret);
 		return NULL;
 	}
+	json_ret->parent_node = NULL;
 	json_ret->type = JSON_ARR;
 	return json_ret;
 }
@@ -249,6 +260,7 @@ Json* json_new_object()
 		printf("func json_new_num error: calloc memory error %d\n", ret);
 		return NULL;
 	}
+	json_ret->parent_node = NULL;
 	json_ret->type = JSON_OBJ;
 	return json_ret;
 }
@@ -273,6 +285,12 @@ int json_arr_add_elem(Json* json, int idx, Json* val)
 	{
 		json->type = JSON_ARR;
 	}
+	
+	if (val->parent_node != NULL)
+	{
+		ret = -1;
+		return ret;
+	}
 
 	// idx范围判断
 	assert(json->arr.count <= idx);
@@ -287,7 +305,7 @@ int json_arr_add_elem(Json* json, int idx, Json* val)
 	Json** json_tmp = (Json**)realloc(json->arr.elems, (json->arr.count + 1) * sizeof(int));
 	if(json_tmp == NULL)
 	{
-		ret = -1;
+		ret = -2;
 		printf("func json_arr_add_elem() error: malloc memory error %d\n", ret);
 		return ret;
 	}
@@ -383,6 +401,7 @@ void json_free_array(array* arr)
 	for (int i = 0; i < arr->count; i++)
 	{
 		json_destroy(arr->elems[i]);
+		arr->elems[i] = NULL;
 	}
 }
 
@@ -416,6 +435,7 @@ void json_free_object(object* obj)
 	{
 		json_free_str(&obj->kvs[i].key);
 		json_destroy(obj->kvs[i].val);
+		obj->kvs[i].val = NULL;
 	}
 }
 
@@ -556,30 +576,89 @@ int json_set_val(Json *json,const char *key,Json *val)
 	assert(val != NULL);
 	int ret = 0;
 	// 判断json存储的类型
-	if(json->type == JSON_NONE || json->type != JSON_ARR || json->type != JSON_OBJ)
+	if(json->type != JSON_ARR && json->type != JSON_OBJ)
 	{
 		ret = -1;
 		printf("func json_set_val error: json中无key值%d\n",ret);
 		return ret;
 	}
-
-	// 若json的类型为数组类型
-	if(json->type == JSON_ARR)
-	{
-		for(int i = 0;i<json->arr.count;i++)
-		{
-			ret = json_set_val(json->arr.elems[i],key,val);
-			if(ret == 0)
-				break;
-		}
-	}
 	
-	// 若json的类型为对象类型（Object）
-	if(json->type == JSON_OBJ)
+	if(json->type == JSON_ARR) // 若json的类型为数组类型
 	{
-		for(int i = 0;i<json->obj.count;i++)
-		{
-			//TODO
-		}
+		json_type_arr_set_val(json, key, val);
 	}
+	else // json的类型为OBJ类型
+	{
+		json_type_obj_set_val(json, key, val);
+	}
+	return ret;
+}
+
+
+int json_type_arr_set_val(Json* json, const char* key, Json* val)
+{
+	assert(json != NULL);
+	assert(key != NULL);
+	assert(val != NULL);
+	assert(json->type == JSON_ARR);
+	int ret = 0;
+
+	for (int i = 0; i < json->arr.count; i++)
+	{
+		if (json->arr.elems[i]->type == JSON_NONE ||
+			json->arr.elems[i]->type == JSON_NUM  ||
+			json->arr.elems[i]->type == JSON_STR  ||
+			json->arr.elems[i]->type == JSON_BOOL)
+		{
+			ret = -1;
+			continue;
+		}
+		else if (json->arr.elems[i]->type == JSON_ARR)
+		{
+			ret = json_type_arr_set_val(json->arr.elems[i], key, val);
+		}
+		else if (json->arr.elems[i]->type == JSON_OBJ)
+		{
+			ret = json_type_obj_set_val(json->arr.elems[i], key, val);
+		}
+		if (ret == 0)
+			return ret;
+	}
+
+	return ret;
+	
+}
+int json_type_obj_set_val(Json* json, const char* key, Json* val)
+{
+	assert(json != NULL);
+	assert(key != NULL);
+	assert(val != NULL);
+	assert(json->type == JSON_OBJ);
+	int ret = 0;
+	for (int i = 0; i < json->obj.count; i++)
+	{
+		if (strcmp(json->obj.kvs[i].key, key) == 0)
+		{
+			json->obj.kvs[i].val = val;
+		}
+		else if (json->obj.kvs[i].val->type == JSON_NONE ||
+				 json->obj.kvs[i].val->type == JSON_NUM  ||
+				 json->obj.kvs[i].val->type == JSON_STR  ||
+				 json->obj.kvs[i].val->type == JSON_BOOL)
+		{
+			ret = -1;
+			continue;
+		}
+		else if (json->obj.kvs[i].val->type == JSON_ARR)
+		{
+			ret = json_type_arr_set_val(json->obj.kvs[i].val, key, val);
+		}
+		else // JSON_OBJ
+		{
+			ret = json_type_obj_set_val(json->obj.kvs[i].val, key, val);
+		}
+		if (ret == 0)
+			return ret;
+	}
+	return ret;
 }

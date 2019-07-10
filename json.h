@@ -198,4 +198,10 @@ void format_control(enum json_split flag);
  */
 int json_set_val(Json *json,const char *key,Json *val);
 
+int json_type_arr_set_val(Json* json, const char* key, Json* val);
+int json_type_obj_set_val(Json* json, const char* key, Json* val);
+
+//enum BOOL json_is_constain(const Json* root, const Json* json);
+//enum BOOL json_arr_constain_process(const array* arr, const Json* json);
+//enum BOOL json_obj_constain_process(const object* obj, const Json* json);
 #endif

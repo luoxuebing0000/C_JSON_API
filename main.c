@@ -1,4 +1,5 @@
 #include "json.h"
+#include <stdio.h>
 
 void Test()
 {
@@ -78,15 +79,23 @@ void Test()
 
 	// json对象的添加
 	json_obj_add_member(root, "basic", basic_obj);
-	json_obj_add_member(basic_obj,"json_test",advance_obj);
+	json_obj_add_member(basic_obj, "root", root);
+	json_obj_add_member(root, "basic", root);
 	json_obj_add_member(root, "advance", advance_obj);
+	json_obj_add_member(root, "advance", advance_obj);
+	json_obj_add_member(root, "root", root);  // bug，不处理会导致死循环
 
-	//json_obj_add_member(root, "root", root);  // bug，不处理会导致死循环
-
+	printf("\n-----------------------------------------------------------------\n");
 	// 打印
-	 json_print_val(root);
+	json_print_val(root);
 
-	// json_print_val(portpool_arr);
+	printf("\n-----------------------------------------------------------------\n");
+	json_print_val(portpool_arr);
+
+	json_set_val(root,"advance",basic_obj);
+
+	printf("\n-----------------------------------------------------------------\n");
+	json_print_val(root);
 
 	// 释放内存
 	json_destroy(root);
