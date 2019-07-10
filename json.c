@@ -364,15 +364,15 @@ void json_print_val_deep(Json* json, int deep, enum json_split flag)
 	switch (json->type)
 	{
 	case JSON_NUM:
-		json_print_num(json->num);
+		print_num(json->num);
 		format_control(flag);
 		break;
 	case JSON_BOOL:
-		json_print_bool(json->bol);
+		print_bool(json->bol);
 		format_control(flag);
 		break;
 	case JSON_STR:
-		json_print_str(json->str);
+		print_str(json->str);
 		format_control(flag);
 		break;
 	case JSON_ARR:
@@ -439,46 +439,6 @@ void json_free_object(object* obj)
 	}
 }
 
-/**
- * 打印传入的数
- *  @param
- *      -num 要输出的数
- *  @return  无
- */
-void json_print_num(double num)
-{
-	printf("%lf",num);
-}
-
-/**
- * 打印传入的bool类型的字符串，
- *  @param
- *      -b 打印的数根据b判断为true 或 false
- *  @return  无
- */
-void json_print_bool(enum BOOL b)
-{
-	if(b == TRUE)
-	{
-		printf("true");
-	}
-	else
-	{
-		printf("false");
-	}
-}
-
-/**
- * 打印传入的字符串，
- *  @param
- *      -b 打印的数为传入的字符串
- *  @return  无
- */
-void json_print_str(const char* str)
-{
-	assert(str != NULL);
-	printf("\"%s\"",str);
-}
 
 /**
  * 打印传入的自定义的数组对象存储的数据，
@@ -624,9 +584,7 @@ int json_type_arr_set_val(Json* json, const char* key, Json* val)
 		if (ret == 0)
 			return ret;
 	}
-
 	return ret;
-	
 }
 int json_type_obj_set_val(Json* json, const char* key, Json* val)
 {
@@ -661,4 +619,127 @@ int json_type_obj_set_val(Json* json, const char* key, Json* val)
 			return ret;
 	}
 	return ret;
+}
+
+
+void json_to_yaml_print(const Json* json)
+{
+	assert(json != NULL);
+	assert(json->type == JSON_OBJ);
+	int deep = 0;
+	json_to_yaml_print_deep(json, deep);
+	
+}
+
+void json_to_yaml_print_deep(const Json* json, int deep)
+{
+	assert(json != NULL);
+	assert(deep >= 0);
+	switch (json->type)
+	{
+	case JSON_NUM:
+		print_num(json->num);
+		break;
+	case JSON_BOOL:
+		print_bool(json->bol);
+		break;
+	case JSON_STR:
+		print_str(json->str);
+		break;
+	case JSON_ARR:
+		yaml_print_arr(&json->arr, &deep);
+		break;
+	case JSON_OBJ:
+		yaml_print_obj(&json->obj, &deep);
+		break;
+	default:
+		break;
+	}
+}
+
+void yaml_print_arr(const array* arr, int* deep)
+{
+	assert(arr != NULL);
+	assert(deep != NULL);
+	for (int i = 0; i < arr->count; i++)
+	{
+		printf("\n");
+		yaml_space_print(*deep);
+		printf("- ");
+		if (arr->elems[i]->type == JSON_OBJ)
+		{
+			for (int j = 0; j < arr->elems[i]->obj.count; j++)
+			{
+				if(j != 0)
+					yaml_space_print(*deep + 1);
+				printf("%s: ", arr->elems[i]->obj.kvs[j].key);
+				json_to_yaml_print_deep(arr->elems[i]->obj.kvs[j].val, 0);
+				if (j != arr->elems[i]->obj.count - 1)
+					printf("\n");
+			}
+		}
+		else
+		{
+			json_to_yaml_print_deep(arr->elems[i], *deep);
+		}
+	}
+}
+void yaml_print_obj(const object* obj, int* deep)
+{
+	assert(obj != NULL);
+	assert(deep != NULL);
+	(*deep)++;
+	for (int i = 0; i < obj->count; i++)
+	{
+		yaml_space_print(*deep-1);
+		printf("%s: ", obj->kvs[i].key);
+		/*if (obj->kvs[i].val->type != JSON_NONE &&
+			obj->kvs[i].val->type != JSON_NUM &&
+			obj->kvs[i].val->type != JSON_BOOL &&
+			obj->kvs[i].val->type != JSON_STR)
+		{
+			printf("\n");
+		}
+*/
+		if (obj->kvs[i].val->type == JSON_OBJ)
+			printf("\n");
+		json_to_yaml_print_deep(obj->kvs[i].val, *deep);
+		if(i != obj->count-1)
+			printf("\n");
+	}
+}
+
+void yaml_space_print(int deep)
+{
+	for(int i = 0;i<deep;i++)
+		printf("  ");
+}
+
+void print_num(double num)
+{
+	printf("%lf", num);
+}
+void print_bool(enum BOOL bol)
+{
+	assert(bol == TRUE || bol == FALSE);
+	if (bol == TRUE)
+	{
+		printf("true");
+	}
+	else
+	{
+		printf("false");
+	}
+}
+void print_str(const char* str)
+{
+	if (str == NULL)
+	{
+		printf("null");
+		return;
+	}
+	else
+	{
+		printf("%s", str);
+	}
 }

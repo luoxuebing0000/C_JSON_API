@@ -138,30 +138,6 @@ void json_free_str(char** str);
 void json_free_object(object* obj);
 
 /**
- * 打印传入的数
- *  @param
- *      -num 要输出的数
- *  @return  无
- */
-void json_print_num(double num);
-
-/**
- * 打印传入的bool类型的字符串，
- *  @param
- *      -b 打印的数根据b判断为true 或 false
- *  @return  无
- */
-void json_print_bool(enum BOOL b);
-
-/**
- * 打印传入的字符串，
- *  @param
- *      -b 打印的数为传入的字符串
- *  @return  无
- */
-void json_print_str(const char* str);
-
-/**
  * 打印传入的自定义的数组对象存储的数据，
  *  @param
  *      -arr 自定义的array类型变量
@@ -201,7 +177,13 @@ int json_set_val(Json *json,const char *key,Json *val);
 int json_type_arr_set_val(Json* json, const char* key, Json* val);
 int json_type_obj_set_val(Json* json, const char* key, Json* val);
 
-//enum BOOL json_is_constain(const Json* root, const Json* json);
-//enum BOOL json_arr_constain_process(const array* arr, const Json* json);
-//enum BOOL json_obj_constain_process(const object* obj, const Json* json);
+void json_to_yaml_print(const Json* json);
+void json_to_yaml_print_deep(const Json* json, int deep);
+void print_num(double num);
+void print_bool(enum BOOL bol);
+void print_str(const char* str);
+void yaml_print_arr(const array* arr, int* deep);
+void yaml_print_obj(const object* obj, int* deep);
+void yaml_space_print(int deep);
+
 #endif

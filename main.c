@@ -43,6 +43,7 @@ void Test()
 	json_obj_add_member(dns_obj_index_0, "name", dns_obj_name_index_0_val);
 	json_obj_add_member(dns_obj_index_0, "ip", dns_obj_ip_index_0_val);
 
+	
 	// {"name":"huabei", "ip": "200.0.0.254"}
 	Json* dns_obj_index_1 = json_new_object();
 	Json* dns_obj_name_index_1_val = json_new_str("huabei");
@@ -50,8 +51,16 @@ void Test()
 	json_obj_add_member(dns_obj_index_1, "name", dns_obj_name_index_1_val);
 	json_obj_add_member(dns_obj_index_1, "ip", dns_obj_ip_index_1_val);
 
+	/*Json* dns_obj_index_1_t = json_new_object();
+	Json* dns_obj_name_index_1_val_t = json_new_str("huabei");
+	Json* dns_obj_ip_index_1_val_t = json_new_str("200.0.0.254");
+	json_obj_add_member(dns_obj_index_1_t, "name", dns_obj_name_index_1_val_t);
+	json_obj_add_member(dns_obj_index_1_t, "ip", dns_obj_ip_index_1_val_t);*/
+
 	json_arr_add_elem(dns_arr_1, 0, dns_obj_index_0);
 	json_arr_add_elem(dns_arr_1, 1, dns_obj_index_1);
+
+	/*json_obj_add_member(dns_obj_index_0, "hello", dns_obj_index_1_t);*/
 
 	// "portpool": [130,131,132]
 	Json* portpool_arr = json_new_array();
@@ -79,23 +88,22 @@ void Test()
 
 	// json对象的添加
 	json_obj_add_member(root, "basic", basic_obj);
-	json_obj_add_member(basic_obj, "root", root);
-	json_obj_add_member(root, "basic", root);
+	/*json_obj_add_member(basic_obj, "root", root);*/
+	/*json_obj_add_member(root, "basic", root);*/
 	json_obj_add_member(root, "advance", advance_obj);
-	json_obj_add_member(root, "advance", advance_obj);
-	json_obj_add_member(root, "root", root);  // bug，不处理会导致死循环
+	/*json_obj_add_member(root, "advance", advance_obj);
+	json_obj_add_member(root, "root", root);*/  // bug，不处理会导致死循环
 
-	printf("\n-----------------------------------------------------------------\n");
 	// 打印
-	json_print_val(root);
+	//json_print_val(root);
 
-	printf("\n-----------------------------------------------------------------\n");
-	json_print_val(portpool_arr);
+	/*json_print_val(portpool_arr);
 
 	json_set_val(root,"advance",basic_obj);
 
-	printf("\n-----------------------------------------------------------------\n");
-	json_print_val(root);
+	json_print_val(root);*/
+
+	json_to_yaml_print(root);
 
 	// 释放内存
 	json_destroy(root);
@@ -106,6 +114,6 @@ void Test()
 int main(void)
 {
 	Test();
-
+	printf("\n");
 	return 0;
 }
