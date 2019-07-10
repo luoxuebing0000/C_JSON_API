@@ -2,184 +2,193 @@
 #define __JSON_H__
 #include "datatype_def.h"
 
+typedef unsigned int U32;
+enum BOOL {TRUE, FALSE};
+enum json_flag { JSON_NONE, JSON_BOOL, JSON_STR, JSON_ARR, JSON_OBJ, JSON_NUM };
+enum json_split { NO_COMMA, WITH_COMMA};// æœ‰æ— é€—å·
+typedef struct _tag_array array;
+typedef struct _tag_keyvalue keyvalue;
+typedef struct _tag_object object;
+typedef struct _tag_json Json;
+
 /**
- *  ´´½¨Ò»¸öJson±äÁ¿
- *  @return  ´´½¨µÄJson±äÁ¿µÄÊ×µØÖ·£¬Ê¹ÓÃmallocÉêÇëÄÚ´æ£¬ÔÚº¯ÊıÍâÃæ½øĞĞÄÚ´æÊÍ·Å
+ *  åˆ›å»ºä¸€ä¸ªJsonå˜é‡
+ *  @return  åˆ›å»ºçš„Jsonå˜é‡çš„é¦–åœ°å€ï¼Œä½¿ç”¨mallocç”³è¯·å†…å­˜ï¼Œåœ¨å‡½æ•°å¤–é¢è¿›è¡Œå†…å­˜é‡Šæ”¾
  */
 Json* json_create();
 
 /**
- *  Ïú»ÙÒ»¸öJson±äÁ¿
- *  @param json ÒªÏú»ÙµÄJson±äÁ¿µÄµØÖ·£¬ÔÚ´Ë´¦½øĞĞÄÚ´æÊÍ·Å
- *  @return ·µ»Ø¿ÕÖµ
+ *  é”€æ¯ä¸€ä¸ªJsonå˜é‡
+ *  @param json è¦é”€æ¯çš„Jsonå˜é‡çš„åœ°å€ï¼Œåœ¨æ­¤å¤„è¿›è¡Œå†…å­˜é‡Šæ”¾
+ *  @return è¿”å›ç©ºå€¼
  */
 void json_destroy(Json** json);
 
 /**
- *  Çå¿ÕÒ»¸öJson±äÁ¿Êı¾İ
- *  @param json ÒªÊÍ·ÅµÄJson±äÁ¿µÄµØÖ·£¬Çå¿ÕJson±äÁ¿´æ´¢µÄÊı¾İ
- *  @return  ´´½¨µÄJson¶ÔÏóµÄÊ×µØÖ·£¬Ê¹ÓÃmallocÉêÇëÄÚ´æ£¬ÔÚº¯ÊıÍâÃæ½øĞĞÄÚ´æÊÍ·Å
+ *  æ¸…ç©ºä¸€ä¸ªJsonå˜é‡æ•°æ®
+ *  @param json è¦é‡Šæ”¾çš„Jsonå˜é‡çš„åœ°å€ï¼Œæ¸…ç©ºJsonå˜é‡å­˜å‚¨çš„æ•°æ®
+ *  @return  åˆ›å»ºçš„Jsonå¯¹è±¡çš„é¦–åœ°å€ï¼Œä½¿ç”¨mallocç”³è¯·å†…å­˜ï¼Œåœ¨å‡½æ•°å¤–é¢è¿›è¡Œå†…å­˜é‡Šæ”¾
  */
 void json_clear(Json* json);
 
 /**
- *  ÏòJson±äÁ¿Ìí¼ÓÒ»¸öjson¸ñÊ½¼üÖµ¶Ô
+ *  å‘Jsonå˜é‡æ·»åŠ ä¸€ä¸ªjsonæ ¼å¼é”®å€¼å¯¹
  *  @param 
- *      -json ÒªÌí¼ÓÊı¾İµÄjson±äÁ¿
- *      -key  ÒªÌí¼ÓµÄ¼üÃû
- *      -val  ÒªÌí¼ÓµÄÖµ
- *  @return  ´´½¨µÄJson¶ÔÏóµÄÊ×µØÖ·£¬Ê¹ÓÃmallocÉêÇëÄÚ´æ£¬ÔÚº¯ÊıÍâÃæ½øĞĞÄÚ´æÊÍ·Å
+ *      -json è¦æ·»åŠ æ•°æ®çš„jsonå˜é‡
+ *      -key  è¦æ·»åŠ çš„é”®å
+ *      -val  è¦æ·»åŠ çš„å€¼
+ *  @return  åˆ›å»ºçš„Jsonå¯¹è±¡çš„é¦–åœ°å€ï¼Œä½¿ç”¨mallocç”³è¯·å†…å­˜ï¼Œåœ¨å‡½æ•°å¤–é¢è¿›è¡Œå†…å­˜é‡Šæ”¾
  */
 int json_obj_add_member(Json* json, const char* key, Json* val);
 
 /**
- *  ĞÂ½¨Ò»¸öintĞÍµÄjson±äÁ¿
- *  @param interger  ÕûĞÎÖµ
- *  @return  ´´½¨µÄÕûĞÎjson¶ÔÏó
+ *  æ–°å»ºä¸€ä¸ªintå‹çš„jsonå˜é‡
+ *  @param interger  æ•´å½¢å€¼
+ *  @return  åˆ›å»ºçš„æ•´å½¢jsonå¯¹è±¡
  */
 Json* json_new_num(double num);
 
 /**
- *  ĞÂ½¨Ò»¸öboolĞÍµÄjson±äÁ¿
- *  @param b  ²¼¶ûÖµ true or false
- *  @return  ´´½¨µÄ²¼¶ûĞÍjson¶ÔÏó
+ *  æ–°å»ºä¸€ä¸ªboolå‹çš„jsonå˜é‡
+ *  @param b  å¸ƒå°”å€¼ true or false
+ *  @return  åˆ›å»ºçš„å¸ƒå°”å‹jsonå¯¹è±¡
  */
 Json* json_new_bool(enum BOOL b);
 
 /**
- *  ĞÂ½¨Ò»¸ö×Ö·û´®ĞÍµÄjson±äÁ¿
- *  @param str  ×Ö·û´®
- *  @return  ´´½¨µÄ×Ö·û´®ĞÍjson¶ÔÏó
+ *  æ–°å»ºä¸€ä¸ªå­—ç¬¦ä¸²å‹çš„jsonå˜é‡
+ *  @param str  å­—ç¬¦ä¸²
+ *  @return  åˆ›å»ºçš„å­—ç¬¦ä¸²å‹jsonå¯¹è±¡
  */
 Json* json_new_str(const char* str);
 
 
  /**
-  *  ĞÂ½¨Ò»¸öÊı×éĞÍµÄjson±äÁ¿
-  *  @param arr  ×Ô¶¨ÒåÊı×é
-  *  @return  ´´½¨µÄÊı×éĞÍjson¶ÔÏó
+  *  æ–°å»ºä¸€ä¸ªæ•°ç»„å‹çš„jsonå˜é‡
+  *  @param arr  è‡ªå®šä¹‰æ•°ç»„
+  *  @return  åˆ›å»ºçš„æ•°ç»„å‹jsonå¯¹è±¡
   */
 Json* json_new_array();
 
  /**
-  *  ĞÂ½¨Ò»¸ö¶ÔÏóÀàĞÍµÄjson±äÁ¿
-  *  @param obj  ¶ÔÏó
-  *  @return  ´´½¨µÄ¶ÔÏóÀàĞÍµÄjson¶ÔÏó
+  *  æ–°å»ºä¸€ä¸ªå¯¹è±¡ç±»å‹çš„jsonå˜é‡
+  *  @param obj  å¯¹è±¡
+  *  @return  åˆ›å»ºçš„å¯¹è±¡ç±»å‹çš„jsonå¯¹è±¡
   */
 Json* json_new_object();
 
 /**
- *  ÏòÊı×éÀàĞÍjson¶ÔÏóÖĞÔÚÖ¸¶¨Î»ÖÃÖĞÌí¼ÓÒ»¸öÖµ
+ *  å‘æ•°ç»„ç±»å‹jsonå¯¹è±¡ä¸­åœ¨æŒ‡å®šä½ç½®ä¸­æ·»åŠ ä¸€ä¸ªå€¼
  *  @param 
- *      -json Êı×éÀàĞÍµÄjson¶ÔÏó
- *      -idx  Êı×éµÄË÷Òı
- *      -val  ÒªÌí¼ÓµÄÖµ
- *  @return  0 ³É¹¦ -1 Ê§°Ü
+ *      -json æ•°ç»„ç±»å‹çš„jsonå¯¹è±¡
+ *      -idx  æ•°ç»„çš„ç´¢å¼•
+ *      -val  è¦æ·»åŠ çš„å€¼
+ *  @return  0 æˆåŠŸ -1 å¤±è´¥
  */
 int json_arr_add_elem(Json* json, int idx, Json* val);
 
 /**
- *  Í¨¹ıkey»ñÈ¡Ö¸¶¨µÄjson±äÁ¿µÄÖµ
+ *  é€šè¿‡keyè·å–æŒ‡å®šçš„jsonå˜é‡çš„å€¼
  *  @param
- *      -json Í¨ÓÃÀàĞÍµÄjson¶ÔÏó
- *      -key  ´«ÈëµÄkeyÖµ
- *  @return  »ñÈ¡µÄÖ¸¶¨µÄjson¶ÔÏó£¬Èô²»´æÔÚÔò·µ»ØNULL
+ *      -json é€šç”¨ç±»å‹çš„jsonå¯¹è±¡
+ *      -key  ä¼ å…¥çš„keyå€¼
+ *  @return  è·å–çš„æŒ‡å®šçš„jsonå¯¹è±¡ï¼Œè‹¥ä¸å­˜åœ¨åˆ™è¿”å›NULL
  */
 Json* json_get_val(Json* json, const char* key);
 
 /**
- *  ´òÓ¡Ö¸¶¨µÄjson¶ÔÏóÖĞµÄÊı¾İ
+ *  æ‰“å°æŒ‡å®šçš„jsonå¯¹è±¡ä¸­çš„æ•°æ®
  *  @param
- *      -json Í¨ÓÃÀàĞÍµÄjson¶ÔÏó
- *  @return  ÎŞ
+ *      -json é€šç”¨ç±»å‹çš„jsonå¯¹è±¡
+ *  @return  æ— 
  */
 void json_print_val(Json* json);
 
 /**
- * µİ¹é´òÓ¡jsonÊı¾İ
+ * é€’å½’æ‰“å°jsonæ•°æ®
  *  @param
- *      -json Í¨ÓÃÀàĞÍµÄjson¶ÔÏó
- *      -deep µ±Ç°µİ¹éÉî¶È£¬ÓÃÓÚ´òÓ¡table¼ü
- *      -flag ±êÖ¾£¬ÓÃÀ´¾ö¶¨json×îºóÒ»¸övalueºóÃæÓĞÃ»ÓĞ¶ººÅ
- *  @return  ÎŞ
+ *      -json é€šç”¨ç±»å‹çš„jsonå¯¹è±¡
+ *      -deep å½“å‰é€’å½’æ·±åº¦ï¼Œç”¨äºæ‰“å°tableé”®
+ *      -flag æ ‡å¿—ï¼Œç”¨æ¥å†³å®šjsonæœ€åä¸€ä¸ªvalueåé¢æœ‰æ²¡æœ‰é€—å·
+ *  @return  æ— 
  */
 void json_print_val_deep(Json* json,int deep, enum json_split flag);
 
 /**
- * ÊÍ·ÅarrayÊı×éÖĞµÄÊı¾İ£¨»ØÊÕÄÚ´æ£©
+ * é‡Šæ”¾arrayæ•°ç»„ä¸­çš„æ•°æ®ï¼ˆå›æ”¶å†…å­˜ï¼‰
  *  @param
- *      -arr Í¨ÓÃÀàĞÍµÄarrayÀàĞÍ±äÁ¿
- *  @return  ÎŞ
+ *      -arr é€šç”¨ç±»å‹çš„arrayç±»å‹å˜é‡
+ *  @return  æ— 
  */
 void json_free_array(array *arr);
 
 /**
- * ÊÍ·Åstr´æ´¢µÄÊı¾İ£¨»ØÊÕÄÚ´æ£©
+ * é‡Šæ”¾strå­˜å‚¨çš„æ•°æ®ï¼ˆå›æ”¶å†…å­˜ï¼‰
  *  @param
- *      -str ×Ö·û´®µÄµØÖ·£¬Ê¹ÓÃ¶ş¼¶µØÖ·£¬±ÜÃâÒ°Ö¸Õë
- *  @return  ÎŞ
+ *      -str å­—ç¬¦ä¸²çš„åœ°å€ï¼Œä½¿ç”¨äºŒçº§åœ°å€ï¼Œé¿å…é‡æŒ‡é’ˆ
+ *  @return  æ— 
  */
 void json_free_str(char** str);
 
 /**
- * ÊÍ·ÅobjectÖĞµÄÊı¾İ£¨»ØÊÕÄÚ´æ£©
+ * é‡Šæ”¾objectä¸­çš„æ•°æ®ï¼ˆå›æ”¶å†…å­˜ï¼‰
  *  @param
- *      -obj Í¨ÓÃµÄobjÀàĞÍµØÖ·
- *  @return  ÎŞ
+ *      -obj é€šç”¨çš„objç±»å‹åœ°å€
+ *  @return  æ— 
  */
 void json_free_object(object* obj);
 
 /**
- * ´òÓ¡´«ÈëµÄÊı
+ * æ‰“å°ä¼ å…¥çš„æ•°
  *  @param
- *      -num ÒªÊä³öµÄÊı
- *      -flag ±êÖ¾Î»£¬ÈôÎªWITH_COMMAÔò´òÓ¡µÄÊıºóÃæ¸úÒ»¸ö¶ººÅ£¬ÈôÎªNO_COMMA£¬Ôò²»´òÓ¡¶ººÅ
- *  @return  ÎŞ
+ *      -num è¦è¾“å‡ºçš„æ•°
+ *      -flag æ ‡å¿—ä½ï¼Œè‹¥ä¸ºWITH_COMMAåˆ™æ‰“å°çš„æ•°åé¢è·Ÿä¸€ä¸ªé€—å·ï¼Œè‹¥ä¸ºNO_COMMAï¼Œåˆ™ä¸æ‰“å°é€—å·
+ *  @return  æ— 
  */
 void json_print_num(double num, enum json_split flag);
 
 /**
- * ´òÓ¡´«ÈëµÄboolÀàĞÍµÄ×Ö·û´®£¬
+ * æ‰“å°ä¼ å…¥çš„boolç±»å‹çš„å­—ç¬¦ä¸²ï¼Œ
  *  @param
- *      -b ´òÓ¡µÄÊı¸ù¾İbÅĞ¶ÏÎªtrue »ò false
- *      -flag ±êÖ¾Î»£¬ÈôÎªWITH_COMMAÔò´òÓ¡µÄÊıºóÃæ¸úÒ»¸ö¶ººÅ£¬ÈôÎªNO_COMMA£¬Ôò²»´òÓ¡¶ººÅ
- *  @return  ÎŞ
+ *      -b æ‰“å°çš„æ•°æ ¹æ®båˆ¤æ–­ä¸ºtrue æˆ– false
+ *      -flag æ ‡å¿—ä½ï¼Œè‹¥ä¸ºWITH_COMMAåˆ™æ‰“å°çš„æ•°åé¢è·Ÿä¸€ä¸ªé€—å·ï¼Œè‹¥ä¸ºNO_COMMAï¼Œåˆ™ä¸æ‰“å°é€—å·
+ *  @return  æ— 
  */
 void json_print_bool(enum BOOL b, enum json_split flag);
 
 /**
- * ´òÓ¡´«ÈëµÄ×Ö·û´®£¬
+ * æ‰“å°ä¼ å…¥çš„å­—ç¬¦ä¸²ï¼Œ
  *  @param
- *      -b ´òÓ¡µÄÊıÎª´«ÈëµÄ×Ö·û´®
- *      -flag ±êÖ¾Î»£¬ÈôÎªWITH_COMMAÔò´òÓ¡µÄÊıºóÃæ¸úÒ»¸ö¶ººÅ£¬ÈôÎªNO_COMMA£¬Ôò²»´òÓ¡¶ººÅ
- *  @return  ÎŞ
+ *      -b æ‰“å°çš„æ•°ä¸ºä¼ å…¥çš„å­—ç¬¦ä¸²
+ *      -flag æ ‡å¿—ä½ï¼Œè‹¥ä¸ºWITH_COMMAåˆ™æ‰“å°çš„æ•°åé¢è·Ÿä¸€ä¸ªé€—å·ï¼Œè‹¥ä¸ºNO_COMMAï¼Œåˆ™ä¸æ‰“å°é€—å·
+ *  @return  æ— 
  */
 void json_print_str(const char* str, enum json_split flag);
 
 /**
- * ´òÓ¡´«ÈëµÄ×Ô¶¨ÒåµÄÊı×é¶ÔÏó´æ´¢µÄÊı¾İ£¬
+ * æ‰“å°ä¼ å…¥çš„è‡ªå®šä¹‰çš„æ•°ç»„å¯¹è±¡å­˜å‚¨çš„æ•°æ®ï¼Œ
  *  @param
- *      -arr ×Ô¶¨ÒåµÄarrayÀàĞÍ±äÁ¿
- *      -flag ±êÖ¾Î»£¬ÈôÎªWITH_COMMAÔò´òÓ¡µÄÊıºóÃæ¸úÒ»¸ö¶ººÅ£¬ÈôÎªNO_COMMA£¬Ôò²»´òÓ¡¶ººÅ
- *  @return  ÎŞ
+ *      -arr è‡ªå®šä¹‰çš„arrayç±»å‹å˜é‡
+ *      -flag æ ‡å¿—ä½ï¼Œè‹¥ä¸ºWITH_COMMAåˆ™æ‰“å°çš„æ•°åé¢è·Ÿä¸€ä¸ªé€—å·ï¼Œè‹¥ä¸ºNO_COMMAï¼Œåˆ™ä¸æ‰“å°é€—å·
+ *  @return  æ— 
  */
 void json_print_arr(const array* arr, int* deep, enum json_split flag);
 
 /**
- * ´òÓ¡´«ÈëµÄ×Ô¶¨ÒåµÄobjectÀàĞÍ±äÁ¿´æ´¢µÄÊı¾İ£¬
+ * æ‰“å°ä¼ å…¥çš„è‡ªå®šä¹‰çš„objectç±»å‹å˜é‡å­˜å‚¨çš„æ•°æ®ï¼Œ
  *  @param
- *      -obj ×Ô¶¨ÒåµÄobjectÀàĞÍ±äÁ¿µØÖ·
- *      -deep ´òÓ¡µÄtable¸öÊı
- *      -flag ±êÖ¾Î»£¬ÈôÎªWITH_COMMAÔò´òÓ¡µÄÊıºóÃæ¸úÒ»¸ö¶ººÅ£¬ÈôÎªNO_COMMA£¬Ôò²»´òÓ¡¶ººÅ
- *  @return  ÎŞ
+ *      -obj è‡ªå®šä¹‰çš„objectç±»å‹å˜é‡åœ°å€
+ *      -deep æ‰“å°çš„tableä¸ªæ•°
+ *      -flag æ ‡å¿—ä½ï¼Œè‹¥ä¸ºWITH_COMMAåˆ™æ‰“å°çš„æ•°åé¢è·Ÿä¸€ä¸ªé€—å·ï¼Œè‹¥ä¸ºNO_COMMAï¼Œåˆ™ä¸æ‰“å°é€—å·
+ *  @return  æ— 
  */
 void json_print_obj(const object* obj, int* deep, enum json_split flag);
 
 /**
- * ´òÓ¡deep¸ötable¼ü£¬
+ * æ‰“å°deepä¸ªtableé”®ï¼Œ
  *  @param
- *      -deep ´òÓ¡µÄtable¸öÊı
- *  @return  ÎŞ
+ *      -deep æ‰“å°çš„tableä¸ªæ•°
+ *  @return  æ— 
  */
 void format_print_tbl(int deep);
 

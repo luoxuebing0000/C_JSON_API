@@ -7,6 +7,37 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+struct _tag_array
+{
+	Json** elems;
+	U32 count;
+};
+
+struct _tag_keyvalue
+{
+	char* key;
+	Json* val;
+};
+
+struct _tag_object
+{
+	keyvalue* kvs;
+	U32 count;
+};
+
+struct _tag_json
+{
+	enum json_flag type;
+	union
+	{
+		double num;
+		enum BOOL bol;
+		char* str;
+		array arr;
+		object obj;
+	};
+};
+
 /**
  *  创建一个Json变量
  *  @return  创建的Json变量的首地址，使用malloc申请内存，在函数外面进行内存释放
@@ -343,6 +374,7 @@ void json_free_str(char** str)
 	char* tmp = *str;
 	if (tmp == NULL)
 		return;
+	printf("free str: %s\n",*str);
 	free(*str);
 	*str = NULL;
 }
