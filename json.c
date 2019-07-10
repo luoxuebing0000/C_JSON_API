@@ -343,7 +343,6 @@ void json_free_str(char** str)
 	char* tmp = *str;
 	if (tmp == NULL)
 		return;
-	printf("free str: %s\n",*str);
 	free(*str);
 	*str = NULL;
 }
