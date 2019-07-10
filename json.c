@@ -327,7 +327,7 @@ void json_print_val(Json* json)
 {
 	assert(json != NULL);
 	int deep = 0;
-	json_print_val_deep(json, deep,WITH_COMMA);
+	json_print_val_deep(json, deep,NO_COMMA);
 	
 }
 
@@ -346,19 +346,24 @@ void json_print_val_deep(Json* json, int deep, enum json_split flag)
 	switch (json->type)
 	{
 	case JSON_NUM:
-		json_print_num(json->num, flag);
+		json_print_num(json->num);
+		format_control(flag);
 		break;
 	case JSON_BOOL:
-		json_print_bool(json->bol, flag);
+		json_print_bool(json->bol);
+		format_control(flag);
 		break;
 	case JSON_STR:
-		json_print_str(json->str, flag);
+		json_print_str(json->str);
+		format_control(flag);
 		break;
 	case JSON_ARR:
-		json_print_arr(&json->arr, &deep, flag);
+		json_print_arr(&json->arr, &deep);
+		format_control(flag);
 		break;
 	case JSON_OBJ:
-		json_print_obj(&json->obj, &deep, flag);
+		json_print_obj(&json->obj, &deep);
+		format_control(flag);
 		break;
 	default:
 		break;
@@ -421,12 +426,9 @@ void json_free_object(object* obj)
  *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
-void json_print_num(double num, enum json_split flag)
+void json_print_num(double num)
 {
-	if (flag == WITH_COMMA)
-		printf("%lf,\n", num);
-	else
-		printf("%lf\n", num);
+	printf("%lf",num);
 }
 
 /**
@@ -436,23 +438,15 @@ void json_print_num(double num, enum json_split flag)
  *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
-void json_print_bool(enum BOOL b, enum json_split flag)
+void json_print_bool(enum BOOL b)
 {
-	if (b == TRUE && flag == WITH_COMMA)
+	if(b == TRUE)
 	{
-		printf("TRUE,\n");
-	}
-	else if(b == TRUE && flag == NO_COMMA)
-	{
-		printf("TRUE\n");
-	}
-	else if (b == FALSE && flag == WITH_COMMA)
-	{
-		printf("FALSE,\n");
+		printf("true");
 	}
 	else
 	{
-		printf("FALSE\n");
+		printf("false");
 	}
 }
 
@@ -463,13 +457,10 @@ void json_print_bool(enum BOOL b, enum json_split flag)
  *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
-void json_print_str(const char* str, enum json_split flag)
+void json_print_str(const char* str)
 {
 	assert(str != NULL);
-	if (flag == WITH_COMMA)
-		printf("\"%s\",\n", str);
-	else
-		printf("\"%s\"\n", str);
+	printf("\"%s\"",str);
 }
 
 /**
@@ -479,7 +470,7 @@ void json_print_str(const char* str, enum json_split flag)
  *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
-void json_print_arr(const array* arr, int* deep, enum json_split flag)
+void json_print_arr(const array* arr, int* deep)
 {
 	assert(arr != NULL);
 	assert(deep != NULL);
@@ -494,10 +485,7 @@ void json_print_arr(const array* arr, int* deep, enum json_split flag)
 			json_print_val_deep(arr->elems[i], *deep, NO_COMMA);
 	}
 	format_print_tbl(*deep - 1);
-	if (flag == WITH_COMMA)
-		printf("],\n");
-	else
-		printf("]\n");
+	printf("]");
 }
 
 /**
@@ -508,13 +496,11 @@ void json_print_arr(const array* arr, int* deep, enum json_split flag)
  *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
-void json_print_obj(const object* obj, int* deep, enum json_split flag)
+void json_print_obj(const object* obj, int* deep)
 {
 	assert(obj != NULL);
 	assert(deep != NULL);
 	printf("{\n");
-	if (*deep == 0)
-		flag = NO_COMMA;
 	(*deep)++;
 
 	for (int i = 0; i < obj->count; i++)
@@ -527,10 +513,7 @@ void json_print_obj(const object* obj, int* deep, enum json_split flag)
 			json_print_val_deep(obj->kvs[i].val, *deep, WITH_COMMA);
 	}
 	format_print_tbl(*deep - 1);
-	if (flag == WITH_COMMA)
-		printf("},\n");
-	else
-		printf("}\n");
+	printf("}");
 
 }
 
@@ -546,6 +529,18 @@ void format_print_tbl(int deep)
 	for (int i = 0; i < deep; i++)
 	{
 		printf("\t");
+	}
+}
+
+void format_control(enum json_split flag)
+{
+	if(flag == WITH_COMMA)
+	{
+		printf(",\n");
+	}
+	else
+	{
+		printf("\n");
 	}
 }
 

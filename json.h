@@ -144,7 +144,7 @@ void json_free_object(object* obj);
  *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
-void json_print_num(double num, enum json_split flag);
+void json_print_num(double num);
 
 /**
  * 打印传入的bool类型的字符串，
@@ -153,7 +153,7 @@ void json_print_num(double num, enum json_split flag);
  *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
-void json_print_bool(enum BOOL b, enum json_split flag);
+void json_print_bool(enum BOOL b);
 
 /**
  * 打印传入的字符串，
@@ -162,7 +162,7 @@ void json_print_bool(enum BOOL b, enum json_split flag);
  *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
-void json_print_str(const char* str, enum json_split flag);
+void json_print_str(const char* str);
 
 /**
  * 打印传入的自定义的数组对象存储的数据，
@@ -171,7 +171,7 @@ void json_print_str(const char* str, enum json_split flag);
  *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
-void json_print_arr(const array* arr, int* deep, enum json_split flag);
+void json_print_arr(const array* arr, int* deep);
 
 /**
  * 打印传入的自定义的object类型变量存储的数据，
@@ -181,7 +181,7 @@ void json_print_arr(const array* arr, int* deep, enum json_split flag);
  *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
-void json_print_obj(const object* obj, int* deep, enum json_split flag);
+void json_print_obj(const object* obj, int* deep);
 
 /**
  * 打印deep个table键，
@@ -190,6 +190,7 @@ void json_print_obj(const object* obj, int* deep, enum json_split flag);
  *  @return  无
  */
 void format_print_tbl(int deep);
+void format_control(enum json_split flag);
 
 
 /**
