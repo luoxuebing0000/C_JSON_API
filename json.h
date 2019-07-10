@@ -141,7 +141,6 @@ void json_free_object(object* obj);
  * 打印传入的数
  *  @param
  *      -num 要输出的数
- *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
 void json_print_num(double num);
@@ -150,7 +149,6 @@ void json_print_num(double num);
  * 打印传入的bool类型的字符串，
  *  @param
  *      -b 打印的数根据b判断为true 或 false
- *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
 void json_print_bool(enum BOOL b);
@@ -159,7 +157,6 @@ void json_print_bool(enum BOOL b);
  * 打印传入的字符串，
  *  @param
  *      -b 打印的数为传入的字符串
- *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
 void json_print_str(const char* str);
@@ -168,7 +165,6 @@ void json_print_str(const char* str);
  * 打印传入的自定义的数组对象存储的数据，
  *  @param
  *      -arr 自定义的array类型变量
- *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
 void json_print_arr(const array* arr, int* deep);
@@ -178,7 +174,6 @@ void json_print_arr(const array* arr, int* deep);
  *  @param
  *      -obj 自定义的object类型变量地址
  *      -deep 打印的table个数
- *      -flag 标志位，若为WITH_COMMA则打印的数后面跟一个逗号，若为NO_COMMA，则不打印逗号
  *  @return  无
  */
 void json_print_obj(const object* obj, int* deep);
