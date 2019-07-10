@@ -1,6 +1,5 @@
 #ifndef __JSON_H__
 #define __JSON_H__
-#include "datatype_def.h"
 
 typedef unsigned int U32;
 enum BOOL {TRUE, FALSE};
