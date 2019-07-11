@@ -1003,7 +1003,7 @@ char* yaml_str_obj(const object* obj, int deep)
 {
 
 	assert(obj != NULL);
-	assert(deep <= INT_MAX);
+	//assert(deep <= INT_MAX);
 	U32 len = obj->count;
 	char* ret_str = (char*)calloc(4096, 1);
 	if (ret_str == NULL)
