@@ -106,7 +106,23 @@ void json_print_val(Json* json);
  */
 int json_set_val(Json *json,const char *key,Json *val);
 
+/**
+ * 讲json格式数据转换成yaml格式并打印到控制台
+ *  @param
+ *      -json 要求：必须是json格式对象才可以(JSON_OBJ)，否则报错
+ *  @return  无
+ */
 void json_to_yaml_print(const Json* json);
+
+
+/**
+ * 讲json格式数据转换成yaml格式并使用字符串传出
+ *  @param
+ *      -json 要求：必须是json格式对象才可以(JSON_OBJ)，否则报错
+ *  @return  传出一个字符串，内存由里面管理，使用后须在外面释放内存
+ *  @其他说明：
+ *       函数功能已经实现，但是内存申请失败后申请的内存没有释放，存在内存泄露，所以注释了
+ */
 //char *json_to_yaml_str(const Json* json);
 
 #endif

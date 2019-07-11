@@ -9,22 +9,64 @@
 #include <string.h>
 
 
-
-
 enum json_split { NO_COMMA = 0, WITH_COMMA };// 有无逗号
 typedef struct _tag_array array;
 typedef struct _tag_keyvalue keyvalue;
 typedef struct _tag_object object;
 
+/**
+ *  打印传入的数值
+ *  @param num 要打印的数值
+ *  @return  无
+ */
 static void print_num(double num);
+
+/**
+ *  打印传入的布尔类型对应的字符串
+ *  @param bol 若为TRUE，则打印"true"，若为FALSE，则为"false"
+ *  @return  无
+ */
 static void print_bool(enum BOOL bol);
+
+/**
+ *  打印传入的字符串
+ *  @param str 要打印的字符串首地址
+ *  @return  无
+ */
 static void print_str(const char* str);
 
-
-
+/**
+ *  将json转换成yaml格式，并按照给定的deep深度控制打印格式
+ *  @param 
+ *    -json 必须为JSON_OBJ类型，非JSON_OBJ类型无法转成yaml格式
+ *    -deep 深度，打印格式需使用deep控制打印的空格数
+ *  @return  无
+ */
 static void json_to_yaml_print_deep(const Json* json, int deep);
+
+/**
+ *  将json对象转成yaml格式时遇到JSON_ARR时使用
+ *  @param 
+ *    -arr 要打印成yaml格式的JSON_ARR对象
+ *    -deep 深度，打印格式需使用deep控制打印的空格数
+ *  @return  无
+ */
 static void yaml_print_arr(const array* arr, int deep);
+
+/**
+ *  将json对象转成yaml格式时遇到JSON_OBJ时使用
+ *  @param 
+ *    -obj 要打印成yaml格式的JSON_OBJ对象
+ *    -deep 深度，打印格式需使用deep控制打印的空格数
+ *  @return  无
+ */
 static void yaml_print_obj(const object* obj, int deep);
+
+/**
+ *  打印deep空格
+ *  @param deep 打印的空格数
+ *  @return  无
+ */
 static void yaml_space_print(int deep);
 
 //char* json_to_yaml_str_deep(const Json* json, int deep);
@@ -100,11 +142,33 @@ static void json_print_obj(const object* obj, int* deep);
  *  @return  无
  */
 static void format_print_tbl(int deep);
+
+/**
+ * 格式控制，控制是否需要打印 ","
+ *  @param
+ *      -flag 若为 WITT_COMMA，则打印逗号，若为NO_COMMA，则不打印逗号
+ *  @return  无
+ */
 static void format_control(enum json_split flag);
 
-
-
+/**
+ * JSON_ARR类型修改值处理函数
+ *  @param
+ *      -json 要修改的JSON_ARR json变量
+ *      -key  通过key查找到要修改的val值
+ *      -val  要修改成的val值
+ *  @return  返回 0 则代表成功，返回负数，则表示失败
+ */
 static int json_type_arr_set_val(Json* json, const char* key, Json* val);
+
+/**
+ * JSON_OBJ类型修改值处理函数
+ *  @param
+ *      -json 要修改的JSON_OBJ json变量
+ *      -key  通过key查找到要修改的val值
+ *      -val  要修改成的val值
+ *  @return  返回 0 则代表成功，返回负数，则表示失败
+ */
 static int json_type_obj_set_val(Json* json, const char* key, Json* val);
 
 struct _tag_array
@@ -679,7 +743,14 @@ int json_set_val(Json* json, const char* key, Json* val)
 	return ret;
 }
 
-
+/**
+ * JSON_ARR类型修改值处理函数
+ *  @param
+ *      -json 要修改的JSON_ARR json变量
+ *      -key  通过key查找到要修改的val值
+ *      -val  要修改成的val值
+ *  @return  返回 0 则代表成功，返回负数，则表示失败
+ */
 static int json_type_arr_set_val(Json* json, const char* key, Json* val)
 {
 	assert(json != NULL);
@@ -711,6 +782,15 @@ static int json_type_arr_set_val(Json* json, const char* key, Json* val)
 	}
 	return ret;
 }
+
+/**
+ * JSON_OBJ类型修改值处理函数
+ *  @param
+ *      -json 要修改的JSON_OBJ json变量
+ *      -key  通过key查找到要修改的val值
+ *      -val  要修改成的val值
+ *  @return  返回 0 则代表成功，返回负数，则表示失败
+ */
 static int json_type_obj_set_val(Json* json, const char* key, Json* val)
 {
 	assert(json != NULL);
@@ -746,15 +826,29 @@ static int json_type_obj_set_val(Json* json, const char* key, Json* val)
 	return ret;
 }
 
-
+/**
+ * 讲json格式数据转换成yaml格式并打印到控制台
+ *  @param
+ *      -json 要求：必须是json格式对象才可以(JSON_OBJ)，否则报错
+ *  @return  无
+ */
 void json_to_yaml_print(const Json* json)
 {
 	assert(json != NULL);
+	// 必须为json格式数据
 	assert(json->type == JSON_OBJ);
 	int deep = 0;
 	json_to_yaml_print_deep(json, deep);
 }
 
+/**
+ * 讲json格式数据转换成yaml格式并使用字符串传出
+ *  @param
+ *      -json 要求：必须是json格式对象才可以(JSON_OBJ)，否则报错
+ *  @return  传出一个字符串，内存由里面管理，使用后须在外面释放内存
+ *  @其他说明：
+ *      函数功能已经实现，但是内存申请失败后申请的内存没有释放，存在内存泄露，所以注释了
+ */
 //char* json_to_yaml_str(const Json* json)
 //{
 //	assert(json != NULL);
@@ -766,10 +860,18 @@ void json_to_yaml_print(const Json* json)
 //	return str;
 //}
 
+/**
+ *  将json转换成yaml格式，并按照给定的deep深度控制打印格式
+ *  @param 
+ *    -json 必须为JSON_OBJ类型，非JSON_OBJ类型无法转成yaml格式
+ *    -deep 深度，打印格式需使用deep控制打印的空格数
+ *  @return  无
+ */
 static  void json_to_yaml_print_deep(const Json* json, int deep)
 {
 	assert(json != NULL);
 	assert(deep >= 0);
+	// 通过json的类型，分别使用对应类型的函数处理json数据
 	switch (json->type)
 	{
 	case JSON_NUM:
@@ -792,22 +894,34 @@ static  void json_to_yaml_print_deep(const Json* json, int deep)
 	}
 }
 
+/**
+ *  将json对象转成yaml格式时遇到JSON_ARR时使用
+ *  @param 
+ *    -arr 要打印成yaml格式的JSON_ARR对象
+ *    -deep 深度，打印格式需使用deep控制打印的空格数
+ *  @return  无
+ */
 static  void yaml_print_arr(const array* arr, int deep)
 {
 	assert(arr != NULL);
 	//assert(deep <= __INT_MAX__);
+	// 循环处理arr对象存储的数据  array{Json **val; U32 count}
 	for (U32 i = 0; i < arr->count; i++)
 	{
+		// yaml格式数据遇到数组，需要使用”- “标记，需要特殊处理 
 		if (arr->elems[i]->type != JSON_ARR)
 		{
 			printf("\n");
 			yaml_space_print(deep);
 			printf("- ");
+			// 若数据存储的数据中为对象，则需要换行打印，
 			if (arr->elems[i]->type == JSON_OBJ)
 			{
 				printf("\n");
 			}
 		}
+
+		// 根据JSON数据对象总存储JSON类型，分别使用对应的函数处理
 		switch (arr->elems[i]->type)
 		{
 		case JSON_OBJ:
@@ -831,14 +945,26 @@ static  void yaml_print_arr(const array* arr, int deep)
 		}
 	}
 }
+
+/**
+ *  将json对象转成yaml格式时遇到JSON_OBJ时使用
+ *  @param 
+ *    -obj 要打印成yaml格式的JSON_OBJ对象
+ *    -deep 深度，打印格式需使用deep控制打印的空格数
+ *  @return  无
+ */
 static  void yaml_print_obj(const object* obj, int deep)
 {
 	assert(obj != NULL);
 	U32 len = obj->count;
+	// 循环处理obj存储的kvs数组  (keyvalue {char *key;Json* val})
 	for (U32 i = 0; i < len; i++)
 	{
+		// 打印空格
 		yaml_space_print(deep);
+		// 输出key值
 		printf("%s: ", obj->kvs[i].key);
+		// 通过判断json->kvs[i].val的类型，分别使用对应的函数处理json格式数据到yaml格式转换并打印
 		switch (obj->kvs[i].val->type)
 		{
 		case JSON_OBJ:
@@ -865,12 +991,23 @@ static  void yaml_print_obj(const object* obj, int deep)
 	}
 }
 
+/**
+ *  打印deep空格
+ *  @param deep 打印的空格数
+ *  @return  无
+ */
 static void yaml_space_print(int deep)
 {
+	// 循环打印deep个双空格
 	for (int i = 0; i < deep; i++)
 		printf("  ");
 }
 
+/**
+ *  打印传入的数值
+ *  @param num 要打印的数值
+ *  @return  无
+ */
 static void print_num(double num)
 {
 	printf("%lf", num);
@@ -887,8 +1024,15 @@ static void print_bool(enum BOOL bol)
 		printf("false");
 	}
 }
+
+/**
+ *  打印传入的字符串
+ *  @param str 要打印的字符串首地址
+ *  @return  无
+ */
 static void print_str(const char* str)
 {
+	// 如果str为空字符串，则打印null以替代
 	if (str == NULL)
 	{
 		printf("null");
