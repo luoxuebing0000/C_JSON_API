@@ -12,6 +12,8 @@ typedef struct _tag_json Json;
  */
 Json* json_create();
 
+enum json_flag json_type(Json* json);
+
 /**
  *  销毁一个Json变量
  *  @param json 要销毁的Json变量的地址，在此处进行内存释放
@@ -105,6 +107,6 @@ void json_print_val(Json* json);
 int json_set_val(Json *json,const char *key,Json *val);
 
 void json_to_yaml_print(const Json* json);
-char *json_to_yaml_str(const Json* json);
+//char *json_to_yaml_str(const Json* json);
 
 #endif

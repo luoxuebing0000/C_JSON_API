@@ -103,9 +103,10 @@ void Test()
 
 	json_print_val(root);*/
 
-	//json_to_yaml_print(root);
-	char *str = json_to_yaml_str(root);
-	printf("%s\n", str);
+	json_to_yaml_print(root);
+	printf("\n");
+	//char *str = json_to_yaml_str(root);
+	//printf("%s\n", str);
 
 	// 释放内存
 	json_destroy(root);
