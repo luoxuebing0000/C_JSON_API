@@ -105,5 +105,6 @@ void json_print_val(Json* json);
 int json_set_val(Json *json,const char *key,Json *val);
 
 void json_to_yaml_print(const Json* json);
+char *json_to_yaml_str(const Json* json);
 
 #endif

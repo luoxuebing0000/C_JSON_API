@@ -1,3 +1,6 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define __STDC_LIMIT_MACROS
+
 #include "json.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -5,7 +8,7 @@
 #include <assert.h>
 #include <string.h>
 
-#define _CRT_SECURE_NO_WARNINGS
+
 
 
 enum json_split { NO_COMMA=0, WITH_COMMA };// 有无逗号
@@ -23,6 +26,16 @@ static void json_to_yaml_print_deep(const Json* json, int deep);
 static void yaml_print_arr(const array* arr, int deep);
 static void yaml_print_obj(const object* obj, int deep);
 static void yaml_space_print(int deep);
+
+char *json_to_yaml_str_deep(const Json* json, int deep);
+char *yaml_str_arr(const array* arr, int deep);
+char *yaml_str_obj(const object* obj, int deep);
+char *yaml_str_print(int deep);
+char *yaml_str_num(double num);
+char *yaml_str_bool(enum BOOL bol);
+char *yaml_str_str(const char* str);
+char *yaml_str_cat(char *str1,char *str2);
+char *yaml_space_str(int deep);
 /**
  *  清空一个Json变量数据
  *  @param json 要释放的Json变量的地址，清空Json变量存储的数据
@@ -38,7 +51,7 @@ static void json_clear(Json* json);
  *      -flag 标志，用来决定json最后一个value后面有没有逗号
  *  @return  无
  */
-static void json_print_val_deep(Json* json, int deep, enum json_split flag);
+static void json_print_val_deep(Json* json, int deep,enum json_split flag);
 
 /**
  * 释放array数组中的数据（回收内存）
@@ -714,6 +727,17 @@ void json_to_yaml_print(const Json* json)
 	json_to_yaml_print_deep(json, deep);
 }
 
+char *json_to_yaml_str(const Json* json)
+{
+	assert(json != NULL);
+	assert(json->type == JSON_OBJ);
+	int deep = 0;
+	char *str = json_to_yaml_str_deep(json,deep);
+	if(str == NULL)
+		fprintf(stderr,"func json_to_yaml_str_deep error -1\n");
+	return str;
+}
+
 static  void json_to_yaml_print_deep(const Json* json, int deep)
 {
 	assert(json != NULL);
@@ -743,27 +767,23 @@ static  void json_to_yaml_print_deep(const Json* json, int deep)
 static  void yaml_print_arr(const array* arr, int deep)
 {
 	assert(arr != NULL);
+	//assert(deep <= __INT_MAX__);
 	for (U32 i = 0; i < arr->count; i++)
 	{
 		if (arr->elems[i]->type != JSON_ARR)
 		{
 			printf("\n");
-			if (arr->elems[i]->type != JSON_OBJ)
+			yaml_space_print(deep);
+			printf("- ");
+			if (arr->elems[i]->type == JSON_OBJ)
 			{
-				yaml_space_print(deep);
-				printf("- ");
-			}
-			else
-			{
-				yaml_space_print(deep);
-				printf("- ");
 				printf("\n");
 			}
 		}
 		switch (arr->elems[i]->type)
 		{
 		case JSON_OBJ:
-			yaml_print_obj(&arr->elems[i]->obj, deep+1);
+			yaml_print_obj(&arr->elems[i]->obj, deep + 1);
 			break;
 		case JSON_ARR:
 			printf("\n");
@@ -786,7 +806,7 @@ static  void yaml_print_arr(const array* arr, int deep)
 static  void yaml_print_obj(const object* obj, int deep)
 {
 	assert(obj != NULL);
-	int len = obj->count;
+	U32 len = obj->count;
 	for (U32 i = 0; i < len; i++)
 	{
 		yaml_space_print(deep);
@@ -850,4 +870,315 @@ static void print_str(const char* str)
 	{
 		printf("%s", str);
 	}
+}
+
+
+char *json_to_yaml_str_deep(const Json* json, int deep)
+{
+	assert(json != NULL);
+	assert(deep >= 0);
+	char *tmp = NULL;
+	switch (json->type)
+	{
+	case JSON_NUM:
+		tmp = yaml_str_num(json->num);
+		break;
+	case JSON_BOOL:
+		tmp = yaml_str_bool(json->bol);
+		break;
+	case JSON_STR:
+		tmp = yaml_str_str(json->str);
+		break;
+	case JSON_ARR:
+		tmp = yaml_str_arr(&json->arr, deep);
+		break;
+	case JSON_OBJ:
+		tmp = yaml_str_obj(&json->obj, deep);
+		break;
+	default:
+		break;
+	}
+	return tmp;
+}
+char *yaml_str_arr(const array* arr, int deep)
+{
+	assert(arr != NULL);
+	//assert(deep <= __INT_MAX__);
+	char* ret_str = (char *)calloc(4096,1); // 40k
+	if (ret_str == NULL)
+	{
+		fprintf(stderr, "func yaml_str_arr error: alloc memory error: -1\n");
+		return NULL;
+	}
+	char *tmp_str = NULL;
+	for (U32 i = 0; i < arr->count; i++)
+	{
+		if (arr->elems[i]->type != JSON_ARR)
+		{
+			sprintf(ret_str + strlen(ret_str), "\n");
+			tmp_str = yaml_space_str(deep);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_arr error: yaml_space_str error -3\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "%s- ", tmp_str);
+			if (arr->elems[i]->type == JSON_OBJ)
+			{
+				sprintf(ret_str + strlen(ret_str), "\n");
+			}
+			free(tmp_str);
+			tmp_str = NULL;
+		}
+		switch (arr->elems[i]->type)
+		{
+		case JSON_OBJ:
+			tmp_str = yaml_str_obj(&arr->elems[i]->obj, deep + 1);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_arr error: yaml_str_obj error -4\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "%s", tmp_str);
+			free(tmp_str);
+			tmp_str = NULL;
+			break;
+		case JSON_ARR:
+			tmp_str = yaml_str_arr(&arr->elems[i]->arr, deep + 1);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_arr error: yaml_str_arr error -5\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "\n%s", tmp_str);
+			free(tmp_str);
+			tmp_str = NULL;
+			break;
+		case JSON_NUM:
+			tmp_str = yaml_str_num(arr->elems[i]->num);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_arr error: yaml_str_num error -6\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "%s", tmp_str);
+			free(tmp_str);
+			tmp_str = NULL;
+			break;
+		case JSON_BOOL:
+			tmp_str = yaml_str_bool(arr->elems[i]->bol);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_arr error: yaml_str_bool error -7\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "%s", tmp_str);
+			free(tmp_str);
+			tmp_str = NULL;
+			break;
+		case JSON_STR:
+			tmp_str = yaml_str_str(arr->elems[i]->str);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_arr error: yaml_str_str error -8\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "%s", tmp_str);
+			free(tmp_str);
+			tmp_str = NULL;
+			break;
+		default:
+			break;
+		}
+		//printf("%s\n", ret_str);
+	}
+	return ret_str;
+END:
+	// 内存处理
+	// TODO
+	return NULL;
+}
+
+char* yaml_str_obj(const object* obj, int deep)
+{
+
+	assert(obj != NULL);
+	assert(deep <= INT_MAX);
+	U32 len = obj->count;
+	char* ret_str = (char*)calloc(4096, 1);
+	if (ret_str == NULL)
+	{
+		fprintf(stderr, "func yaml_str_obj error: calloc memory error -1\n");
+		goto END;
+	}
+	char* tmp_str = NULL;
+	for (U32 i = 0; i < len; i++)
+	{
+		tmp_str = yaml_space_str(deep);
+		if (tmp_str == NULL)
+		{
+			fprintf(stderr, "func yaml_str_obj error: yaml_space_print error -1\n");
+			goto END;
+		}
+		sprintf(ret_str + strlen(ret_str), "%s%s: ", tmp_str, obj->kvs[i].key);
+		free(tmp_str);
+		tmp_str = NULL;
+		switch (obj->kvs[i].val->type)
+		{
+		case JSON_OBJ:
+			tmp_str = yaml_str_obj(&obj->kvs[i].val->obj, deep + 1);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_obj error: yaml_str_obj error -2\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "\n%s", tmp_str);
+			free(tmp_str);
+			tmp_str = NULL;
+			break;
+		case JSON_ARR:
+			tmp_str = yaml_str_arr(&obj->kvs[i].val->arr, deep + 1);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_obj error: yaml_str_arr error -3\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "%s", tmp_str);
+			free(tmp_str);
+			tmp_str = NULL;
+			break;
+		case JSON_NUM:
+			tmp_str = yaml_str_num(obj->kvs[i].val->num);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_obj error: yaml_str_num error -4\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "%s", tmp_str);
+			free(tmp_str);
+			tmp_str = NULL;
+			break;
+		case JSON_BOOL:
+			tmp_str = yaml_str_bool(obj->kvs[i].val->bol);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_obj error: yaml_str_bool error -5\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "%s", tmp_str);
+			free(tmp_str);
+			tmp_str = NULL;
+			break;
+		case JSON_STR:
+			tmp_str = yaml_str_str(obj->kvs[i].val->str);
+			if (tmp_str == NULL)
+			{
+				fprintf(stderr, "func yaml_str_obj error: yaml_str_str error -6\n");
+				goto END;
+			}
+			sprintf(ret_str + strlen(ret_str), "%s", tmp_str);
+			free(tmp_str);
+			tmp_str = NULL;
+			break;
+		default:
+			break;
+		}
+		if (i != len - 1)
+		{
+			sprintf(ret_str + strlen(ret_str), "\n");
+		}
+	}
+	return ret_str;
+	
+END:
+	// 处理失败后申请的内存
+	// TODO
+	return NULL;
+}
+char *yaml_str_num(double num)
+{
+	//assert(num <= __DBL_MAX__);
+	char* tmp = (char*)calloc(100, 1);
+	if (tmp == NULL)
+	{
+		fprintf(stderr, "func yaml_str_num error: calloc memory error\n");
+		return NULL;
+	}
+	sprintf(tmp,"%lf",num);
+	return tmp;
+}
+char *yaml_str_bool(enum BOOL bol)
+{
+	assert(bol == TRUE || bol == FALSE);
+	char* tmp = NULL;
+	if(bol == TRUE)
+	{
+		tmp = strdup("true");
+	}
+	else
+	{
+		tmp = strdup("false");
+	}
+	if(tmp == NULL)
+	{
+		fprintf(stderr,"func yaml_str_bool error: strdup error -1\n");
+	}
+	return tmp;
+}
+char *yaml_str_str(const char* str)
+{
+	assert(str != NULL);
+	char *tmp = strdup(str);
+	if(tmp == NULL)
+	{
+		fprintf(stderr,"func yaml_str_str error: strdup error -1\n");
+	}
+	return tmp;
+}
+
+char *yaml_str_cat(char *str1,char *str2)
+{
+	assert(str1 != NULL);
+	assert(str2 != NULL);
+	int len = strlen(str1)+strlen(str2);
+	char *ret = (char *)malloc(len+1);
+	if(ret == NULL)
+	{
+		fprintf(stderr,"func yaml_str_cat error: malloc memory error -1\n");
+		return NULL;
+	}
+	memset(ret,0,len+1);
+	char *tmp_ret = strcat(ret,str1);
+	if(tmp_ret == NULL)
+	{
+		free(ret);
+		fprintf(stderr,"func yaml_str_cat error: malloc memory error -2\n");
+		return NULL;
+	}
+	tmp_ret = strcat(ret,str2);
+	if(tmp_ret == NULL)
+	{
+		free(ret);
+		fprintf(stderr,"func yaml_str_cat error: malloc memory error -3\n");
+		return NULL;
+	}
+	free(str1);
+	free(str2);
+	return ret;
+}
+
+char *yaml_space_str(int deep)
+{
+	//assert(deep <= __INT_MAX__);
+	char* ret_str = (char*)calloc(deep * 2 + 1, 1);
+	if (ret_str == NULL)
+	{
+		fprintf(stderr, "func yaml_space_str error: calloc momory error\n");
+		return NULL;
+	}
+	for(int i = 0;i<deep;i++)
+	{
+		sprintf(ret_str + strlen(ret_str),"  ");
+	}
+	return ret_str;
 }
